@@ -1,20 +1,35 @@
 close all
 
-num = 14;
-numbers = randperm(6400, num);
-shape = [80, 80];
+rng('shuffle');
+pso = 0;
+sa = 0;
+pso_sa = 0;
 
-[SA1.route, SA1.cost] = SA(numbers, shape);
-disp(SA1);
+for k = 1:10
+    fprintf('Loop %d\n', k);
+    % num = randperm(30, 1);
+    % while num<3
+    %     num = randperm(30, 1);
+    % end
+    numbers = randperm(4800, 45);
+    shape = [80, 60];
 
-gbest = PSO(numbers, shape);
-for i = 1:num
-    gbest.route(i) = numbers(gbest.route(i));
+    gbest = PSO(numbers, shape);
+    disp(gbest);
+    pso = pso + gbest.cost;
+
+    [SA1.route, SA1.cost] = SA(numbers, shape);
+    disp(SA1);
+    sa = sa + SA1.cost;
+
+    [SA2.route, SA2.cost] = SA(gbest.route, shape);
+    disp(SA2);
+    pso_sa = pso_sa + SA2.cost;
 end
-disp(gbest);
 
-[SA2.route, SA2.cost] = SA(gbest.route, shape);
-disp(SA2);
+fprintf('PSO : %d\n', pso);
+fprintf('SA : %d\n', sa);
+fprintf('PSO + SA : %d\n', pso_sa);
 
 
 %% function
@@ -28,16 +43,16 @@ function [route_best, energy_best] = SA(numbers, shape)
     temperature = initial_temp;
     res = 1e-3;
     ratio = 0.9;
-    markov_len = 1000;
+    markov_len = 500;
+
     energy_current = inf;
     energy_best = inf;
-    route_new = numbers;
 
+    route_new = numbers;
     route_current = route_new;
     route_best = route_new;
 
     while temperature > res
-        e = energy_best;
         for i = 1:markov_len
             if rand > 0.5
                 a = 0;
@@ -106,8 +121,8 @@ function gbest = PSO(numbers, shape)
     n_iterations = 1000;
     population = 100;
 
-    alpha = 1;
-    beta = 0.95;
+    alpha = 0.95;
+    beta = 0.85;
 
     particle.route = [];
     particle.pbest = [];
@@ -190,5 +205,9 @@ function gbest = PSO(numbers, shape)
                 particles(j).best_cost = particles(j).current_cost;
             end
         end
+    end
+
+    for i = 1:n
+        gbest.route(i) = numbers(gbest.route(i));
     end
 end
